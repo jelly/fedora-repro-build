@@ -26,6 +26,7 @@ import koji
 
 CACHE_DIR = Path('./cache')
 KOJI_URL = 'https://kojipkgs.fedoraproject.org/'
+OUTPUTDIR = os.getenv('REBUILDERD_OUTDIR')
 
 def listify(func):
     def wrapper(*args, **kwargs):
@@ -882,6 +883,12 @@ def compare_outputs(package, save=False):
         with savepath.open('w') as f:
             json.dump(rpm_diffs, f)
 
+        if OUTPUTDIR:
+            savepath = Path(OUTPUTDIR) / 'comparison.json'
+            print(f'Saving comparison to {savepath}')
+            with savepath.open('w') as f:
+                json.dump(rpm_diffs, f)
+
     return rpm_diffs
 
 class NoBuildForArch(ValueError):
@@ -934,6 +941,11 @@ def rebuild_package(opts, package, *mock_opts, arch=None):
     else:
         mock_result = build_package(opts, arch_rpm, mock_configfile, *mock_opts)
         outdir = mock_collect_output(opts, package, mock_configfile, mock_result)
+        import shutil
+        if OUTPUTDIR:
+            for filename in os.listdir(outdir):
+                if filename.endswith('x86_64.rpm'):
+                    shutil.copyfile(outdir / filename, os.path.join(OUTPUTDIR, filename))
 
         if mock_result == 0:
             compare_outputs(package, save=True)
