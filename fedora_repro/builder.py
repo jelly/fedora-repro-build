@@ -719,6 +719,7 @@ def build_package(opts, rpm, mock_configfile, *mock_opts):
         f"--define=packager {config['PACKAGER']}",
         f"--define=vendor {config['VENDOR']}",
         f"--define=bugurl {config['BUGURL']}",
+        f"--define=_buildtime {config['BUILDTIME']}",
         '--config-opts=yum_cache_enable=False',
         '--without=tests',
         '--nocheck',
